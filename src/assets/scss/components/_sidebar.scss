@@ -1,0 +1,21 @@
+.sidebar{
+  width: 400px;
+  text-align: center;
+
+  @media screen and (max-width: 1100px) {
+    width: 80px;
+    overflow-x: hidden;
+    .sidebar__menu--item{
+      i{
+        font-size: 40px!important;
+        margin-right: 100px;
+      }
+    }
+  }
+}
+.el-menu-vertical-demo{
+  height: 100vh;
+}
+.is-active{
+  color: rgb(255, 208, 75)!important;
+}

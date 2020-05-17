@@ -1,0 +1,60 @@
+.cezar-wrapper{
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  @media screen and (max-width: 680px) { padding: 10px; }
+  .btn-group{
+    position: absolute;
+    top: 0;
+    right: 20px;
+  }
+  @media screen and (max-width: 600px) {
+    .btn-group{
+      display: block;
+      position: relative;
+      top: auto;
+      right: auto;
+      margin: 0 auto;
+      width: max-content;
+    }
+  }
+}
+.container-fluid{
+  >.row{
+    >.col{
+      padding: 0!important;
+    }
+  }
+}
+.cezar__title{
+  color: black;
+}
+.cezar__source-text{
+  max-width: 600px;
+}
+.cezar__inp-wrapper{
+
+  >.select-default{
+    margin-right: 10px;
+  }
+}
+.inp-default{
+  max-width: 300px;
+}
+.result{
+  &:hover{ cursor: pointer; }
+  >span:hover{ cursor: text; }
+}
+
+.el-switch{
+  .el-switch__label{
+    >span{
+      color: black;
+    }
+  }
+  .is-active{
+    >span{
+      color: #1c7430;
+    }
+  }
+}
