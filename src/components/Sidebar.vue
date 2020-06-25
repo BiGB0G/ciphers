@@ -24,10 +24,18 @@
                 <i class="el-icon-chicken"></i>
                 <span>Affine</span>
             </el-menu-item>
-            <el-menu-item class="sidebar__menu--item" index="4" @click="goTo('/other')">
+            <el-menu-item class="sidebar__menu--item" index="5" @click="goTo('/permutation')">
+                <i class="el-icon-refrigerator"></i>
+                <span>Permutation</span>
+            </el-menu-item>
+            <el-menu-item class="sidebar__menu--item" index="6" @click="goTo('/affine2')">
+                <i class="el-icon-goblet-full"></i>
+                <span>Affine two power</span>
+            </el-menu-item>
+<!--            <el-menu-item class="sidebar__menu&#45;&#45;item" index="99" @click="goTo('/other')">
                 <i class="el-icon-menu"></i>
                 <span>Other</span>
-            </el-menu-item>
+            </el-menu-item>-->
         </el-menu>
     </div>
 </template>

@@ -3,14 +3,14 @@
         <app-header active="2"></app-header>
         <div class="content-wrapper">
             <div class="sidebar-wrap">
-                <Sidebar active="4"></Sidebar>
+                <Sidebar active="6"></Sidebar>
             </div>
             <main>
                 <div class="cezar-wrapper" v-loading="loading">
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col">
-                                <h2>Affine cipher</h2>
+                                <h2>Affine two power cipher</h2>
                             </div>
                         </div>
                         <div class="row mt-2">
@@ -77,6 +77,20 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row mt-2">
+                            <div class="col">
+                                <div style="display: flex">
+                                    <div>
+                                        <div class="cezar__title">Key three</div>
+                                        <el-input-number id="key3" @change="validateAlphabet" v-model="key3" :min="0"></el-input-number>
+                                    </div>
+                                    <div style="margin-left: 20px">
+                                        <div class="cezar__title">Key four</div>
+                                        <el-input-number id="key4" @change="validateAlphabet" v-model="key4" :min="0"></el-input-number>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row mt-3">
                             <el-divider class="mb-3"></el-divider>
                             <div class="result" v-if="this.resultText !== ''">
@@ -96,7 +110,7 @@
     import Sidebar from "@/components/Sidebar";
 
     export default {
-        name: "affine",
+        name: "affine2",
         components: {
             AppHeader,
             Sidebar
@@ -126,6 +140,8 @@
                 },
                 key1: 0,
                 key2: 0,
+                key3: 0,
+                key4: 0,
                 resultText: ''
             }
         },
@@ -147,38 +163,89 @@
                 let alphabet = this.getAlphabet();
 
                 if(this.encode) {
-                    for(let i = 0; i < this.sourceText.length; ++i) {
-                        if(this.sourceText[i] === ' ') {
-                            this.resultText += ' ';
-                            continue;
-                        }
-                        let index = alphabet.indexOf(this.sourceText[i]);
-                        let newIndexChar = (this.key1 * index + this.key2) % alphabet.length;
-                        this.resultText += alphabet[newIndexChar];
+                    let bigram = this.createBigrams();
+                    let vectors = [];
+                    bigram.forEach(item => {
+                        vectors.push(
+                            [
+                                alphabet.indexOf(item[0]),
+                                alphabet.indexOf(item[1])
+                            ]
+                        );
+                    });
+                    let temp = this.mul([[this.key1, this.key2],[this.key3, this.key4]], vectors);
+                    for(let i = 0; i < bigram.length; ++i) {
+                        this.resultText += alphabet[temp[i][0]];
+                        this.resultText += alphabet[temp[i][1]];
                     }
                 } else {
-                    let temp = this.equation();
-                    for(let i = 0; i < this.sourceText.length; ++i) {
-                        if(this.sourceText[i] === ' ') {
-                            this.resultText += ' ';
-                            continue;
-                        }
-                        let index = alphabet.indexOf(this.sourceText[i]);
-                        let tmp = (temp * (index - this.key2)) % alphabet.length;
-                        while (tmp < 0) {
-                            tmp = alphabet.length + tmp;
-                        }
-                        this.resultText += alphabet[tmp];
+                    let bigram = this.createBigrams();
+                    let vectors = [];
+                    bigram.forEach(item => {
+                        vectors.push(
+                            [
+                                alphabet.indexOf(item[0]),
+                                alphabet.indexOf(item[1])
+                            ]
+                        );
+                    });
+                    let delta = this.getDelta();
+                    if(delta < 0) {
+                        delta = delta % alphabet.length + alphabet.length;
+                    }
+                    else
+                        delta = delta % alphabet.length;
+                    let w1 = this.findW1(delta);
+                    let matrixTemp = [
+                        [
+                            this.ostDel(this.key4 * w1, alphabet.length),
+                            this.ostDel(- this.key2 * w1, alphabet.length),
+                        ],
+                        [
+                            this.ostDel(- this.key3 * w1, alphabet.length),
+                            this.ostDel(this.key1 * w1, alphabet.length)
+                        ]
+                    ];
+                    let result = this.mul(matrixTemp, vectors);
+                    for(let i = 0; i < bigram.length; ++i) {
+                        this.resultText += alphabet[result[i][0]];
+                        this.resultText += alphabet[result[i][1]];
                     }
                 }
 
             },
-            equation: function () {
-                for(let i = 1; i < this.getAlphabet().length; ++ i) {
-                    if(this.key1 * i % this.getAlphabet().length === 1) {
+            ostDel: function (a, b) {
+                if(a < 0)
+                    return a % b + b;
+                else
+                    return a % b;
+            },
+            getDelta: function () {
+                return this.key1 * this.key4 - this.key2 * this.key3;
+            },
+            findW1: function (w) {
+                let len = this.getAlphabet().length;
+                for(let i = 0; i < len; ++i) {
+                    if(1 === (w * i) % len)
                         return i;
-                    }
                 }
+            },
+            createBigrams: function () {
+                let bigram = [];
+                for(let i = 0; i < this.sourceText.length; i += 2) {
+                    bigram.push(this.sourceText.slice(i, i + 2));
+                }
+                return bigram;
+            },
+            mul: function (matr1, matr2) {
+                let matr = [];
+                for (let i = 0; i < matr2.length; ++i) {
+                    matr.push([
+                        (matr1[0][0] * matr2[i][0] + matr1[0][1] * matr2[i][1]) % this.getAlphabet().length,
+                        (matr1[1][0] * matr2[i][0] + matr1[1][1] * matr2[i][1]) % this.getAlphabet().length
+                    ]);
+                }
+                return matr;
             },
             validateAlphabet: function () {
                 if(this.alphabet.valueSelect === '') {
@@ -187,11 +254,17 @@
                 } else {
                     document.getElementById('select-alphabet').style.borderColor = '#DCDFE6';
                 }
-                if(this.nod(this.key1, this.key2) === 1 && this.key1 <= this.getAlphabet().length) {
+                if(this.nod(this.getDelta(), this.getAlphabet().length) === 1) {
+                    document.querySelector('#key1>.el-input>input').style.borderColor = '#DCDFE6';
+                    document.querySelector('#key2>.el-input>input').style.borderColor = '#DCDFE6';
+                    document.querySelector('#key3>.el-input>input').style.borderColor = '#DCDFE6';
+                    document.querySelector('#key4>.el-input>input').style.borderColor = '#DCDFE6';
                     this.startEncode();
-                    this.hideError();
                 } else {
-                    this.showError();
+                    document.querySelector('#key1>.el-input>input').style.borderColor = 'red';
+                    document.querySelector('#key2>.el-input>input').style.borderColor = 'red';
+                    document.querySelector('#key3>.el-input>input').style.borderColor = 'red';
+                    document.querySelector('#key4>.el-input>input').style.borderColor = 'red';
                 }
             },
             nod: function (a, b) {

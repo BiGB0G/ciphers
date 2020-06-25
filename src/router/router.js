@@ -7,6 +7,8 @@ import CezarDecode from "@/views/CezarDecode";
 import SRC from "@/views/SRC";
 import Vigenere from "@/views/Vigenere";
 import Affine from "@/views/Affine";
+import Permutation from "@/views/Permutation";
+import Affine2 from "@/views/Affine2";
 
 Vue.use(VueRouter);
 
@@ -48,6 +50,16 @@ const router = new VueRouter({
             path: '/affine',
             name: 'affine',
             component: Affine
+        },
+        {
+            path: '/permutation',
+            name: 'permutation',
+            component: Permutation
+        },
+        {
+            path: '/affine2',
+            name: 'affine2',
+            component: Affine2
         },
     ]
 });

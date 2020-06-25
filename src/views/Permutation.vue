@@ -3,30 +3,17 @@
         <app-header active="2"></app-header>
         <div class="content-wrapper">
             <div class="sidebar-wrap">
-                <Sidebar active="4"></Sidebar>
+                <Sidebar active="5"></Sidebar>
             </div>
             <main>
                 <div class="cezar-wrapper" v-loading="loading">
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col">
-                                <h2>Affine cipher</h2>
+                                <h2>Permutation cipher</h2>
                             </div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col">
-                                <el-switch
-                                        style="display: block"
-                                        @change="validateAlphabet"
-                                        v-model="encode"
-                                        active-color="#13ce66"
-                                        inactive-color="#ff4949"
-                                        active-text="Encode"
-                                        inactive-text="Decode">
-                                </el-switch>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
                             <div class="col">
                                 <div class="cezar__title">Input text</div>
                                 <el-input
@@ -41,38 +28,14 @@
                         </div>
                         <div class="row mt-2">
                             <div class="col">
-                                <div class="cezar__title">Select Alphabet</div>
-                                <div class="cezar__inp-wrapper">
-                                    <el-select id="select-alphabet" @change="validateAlphabet" class="select-default select-error" v-model="alphabet.valueSelect" placeholder="Select">
-                                        <el-option
-                                                v-for="item in alphabet.options"
-                                                :key="item.value"
-                                                :label="item.label"
-                                                :value="item.value">
-                                        </el-option>
-                                    </el-select>
-                                    <el-input
-                                            v-if="alphabet.valueSelect === 'manually'"
-                                            @input="validateAlphabet"
-                                            id="input-manually"
-                                            class="inp-default"
-                                            placeholder="Please input alphabet"
-                                            v-model="alphabet.value"
-                                            clearable>
-                                    </el-input>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col">
                                 <div style="display: flex">
-                                    <div>
-                                        <div class="cezar__title">Key one</div>
-                                        <el-input-number id="key1" @change="validateAlphabet" v-model="key1" :min="0"></el-input-number>
+                                    <div v-for="(item, i) in matrix" :key="i" style="margin-left: 5px;margin-right: 5px">
+                                        <div class="cezar__title" v-if="i === 0">Key</div>
+                                        <div v-else style="height: 24px"></div>
+                                        <el-input-number id="key1" @change="validateAlphabet" v-model="matrix[i]" :min="1"></el-input-number>
                                     </div>
-                                    <div style="margin-left: 20px">
-                                        <div class="cezar__title">Key two<span id="error-message">NOD({{this.key1}}, {{this.getAlphabet().length}}) not equal to one</span></div>
-                                        <el-input-number id="key2" @change="validateAlphabet" v-model="key2" :min="0"></el-input-number>
+                                    <div>
+                                        <el-button @click="addItemToMatrix" style="margin-top: 23px;margin-left: 15px" type="primary" icon="el-icon-plus"></el-button>
                                     </div>
                                 </div>
                             </div>
@@ -96,7 +59,7 @@
     import Sidebar from "@/components/Sidebar";
 
     export default {
-        name: "affine",
+        name: "permutation",
         components: {
             AppHeader,
             Sidebar
@@ -126,7 +89,8 @@
                 },
                 key1: 0,
                 key2: 0,
-                resultText: ''
+                resultText: '',
+                matrix: [0]
             }
         },
         mounted() {
@@ -143,33 +107,22 @@
                 if(this.sourceText === '') {
                     return;
                 }
-                this.resultText = '';
-                let alphabet = this.getAlphabet();
 
-                if(this.encode) {
-                    for(let i = 0; i < this.sourceText.length; ++i) {
-                        if(this.sourceText[i] === ' ') {
-                            this.resultText += ' ';
-                            continue;
-                        }
-                        let index = alphabet.indexOf(this.sourceText[i]);
-                        let newIndexChar = (this.key1 * index + this.key2) % alphabet.length;
-                        this.resultText += alphabet[newIndexChar];
-                    }
-                } else {
-                    let temp = this.equation();
-                    for(let i = 0; i < this.sourceText.length; ++i) {
-                        if(this.sourceText[i] === ' ') {
-                            this.resultText += ' ';
-                            continue;
-                        }
-                        let index = alphabet.indexOf(this.sourceText[i]);
-                        let tmp = (temp * (index - this.key2)) % alphabet.length;
-                        while (tmp < 0) {
-                            tmp = alphabet.length + tmp;
-                        }
-                        this.resultText += alphabet[tmp];
-                    }
+                this.resultText = '';
+
+                let blocks = [];
+                for(let i = 0; i < this.sourceText.length;i += this.matrix.length) {
+                    blocks.push(this.sourceText.slice(i, i + this.matrix.length));
+                }
+                if(blocks[blocks.length - 1].length < this.matrix.length) {
+                    blocks[blocks.length - 1] += this.sourceText.slice(0, this.matrix.length - blocks[blocks.length - 1].length);
+                }
+                for(let i = 0; i < blocks.length; ++i) {
+                    let block = '';
+                    this.matrix.forEach(item => {
+                        block += blocks[i][item - 1];
+                    });
+                    this.resultText += block;
                 }
 
             },
@@ -181,7 +134,8 @@
                 }
             },
             validateAlphabet: function () {
-                if(this.alphabet.valueSelect === '') {
+                this.startEncode();
+/*                if(this.alphabet.valueSelect === '') {
                     document.getElementById('select-alphabet').style.borderColor = 'red';
                     return;
                 } else {
@@ -192,15 +146,7 @@
                     this.hideError();
                 } else {
                     this.showError();
-                }
-            },
-            nod: function (a, b) {
-                while(a > 0 && b > 0)
-                    if(a > b)
-                        a %= b;
-                    else
-                        b %= a;
-                return a + b;
+                }*/
             },
             showError: function () {
                 document.querySelector('#key1>.el-input>input').style.borderColor = 'red';
@@ -214,6 +160,10 @@
                 // document.getElementById('input-key').style.borderColor = '#DCDFE6';
                 try { document.getElementById('input-manually').style.borderColor = '#DCDFE6'; } catch (e) { '' }
                 document.getElementById('error-message').style.display = 'none';
+            },
+            addItemToMatrix: function () {
+                this.matrix.push(0);
+                this.startEncode();
             }
         }
     }
