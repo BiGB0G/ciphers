@@ -6,6 +6,7 @@ import Other from "@/views/Other";
 import CezarDecode from "@/views/CezarDecode";
 import SRC from "@/views/SRC";
 import Vigenere from "@/views/Vigenere";
+import Affine from "@/views/Affine";
 
 Vue.use(VueRouter);
 
@@ -42,6 +43,11 @@ const router = new VueRouter({
             path: '/vigenere',
             name: 'vigenere',
             component: Vigenere
+        },
+        {
+            path: '/affine',
+            name: 'affine',
+            component: Affine
         },
     ]
 });

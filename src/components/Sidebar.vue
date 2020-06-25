@@ -20,6 +20,10 @@
                 <i class="el-icon-bicycle"></i>
                 <span>Vigenere</span>
             </el-menu-item>
+            <el-menu-item class="sidebar__menu--item" index="4" @click="goTo('/affine')">
+                <i class="el-icon-chicken"></i>
+                <span>Affine</span>
+            </el-menu-item>
             <el-menu-item class="sidebar__menu--item" index="4" @click="goTo('/other')">
                 <i class="el-icon-menu"></i>
                 <span>Other</span>
